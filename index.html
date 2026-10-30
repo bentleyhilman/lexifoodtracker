@@ -1,0 +1,804 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ffffff">
+<title>Lexi — Food Tracker</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --green: #39b879;
+  --green-dark: #26965e;
+  --ink: #202420;
+  --muted: #999f9a;
+  --white: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--white);
+  color: var(--ink);
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+#success-background {
+  position: fixed;
+  z-index: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--green);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+}
+
+#success-background.expand {
+  animation: fillScreen 1s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+@keyframes fillScreen {
+  to {
+    transform: translate(-50%, -50%) scale(180);
+  }
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 38px 24px 30px;
+  transition: color .7s ease;
+}
+
+body.fed {
+  color: white;
+}
+
+.top {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -.8px;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  background: #f1f4f0;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e4a64a;
+  transition: background .3s;
+}
+
+.status-dot.online {
+  background: #39b879;
+}
+
+body.fed .status {
+  color: rgba(255,255,255,.75);
+}
+
+body.fed .status-dot {
+  background: white;
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding-bottom: 25px;
+}
+
+.eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2.6px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 20px;
+  transition: color .6s;
+}
+
+body.fed .eyebrow {
+  color: rgba(255,255,255,.7);
+}
+
+h1 {
+  font-family: 'Manrope', sans-serif;
+  font-size: clamp(43px, 10vw, 68px);
+  font-weight: 800;
+  letter-spacing: -4px;
+  line-height: 1.05;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: var(--muted);
+  margin-top: 14px;
+  transition: color .6s;
+}
+
+body.fed .subtitle {
+  color: rgba(255,255,255,.8);
+}
+
+.button-area {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  margin-top: 60px;
+  display: grid;
+  place-items: center;
+}
+
+.glow {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--green);
+  opacity: .09;
+  transform: scale(.9);
+  transition: all .6s cubic-bezier(.2,.8,.2,1);
+}
+
+.feed-button {
+  position: relative;
+  width: 142px;
+  height: 142px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ink);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  box-shadow: 0 12px 35px rgba(0,0,0,.12);
+  transition:
+    transform .45s cubic-bezier(.2,.8,.2,1),
+    background .5s,
+    box-shadow .5s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.feed-button:hover:not(:disabled) {
+  transform: scale(1.07);
+  box-shadow: 0 18px 45px rgba(0,0,0,.17);
+}
+
+.feed-button:active:not(:disabled) {
+  transform: scale(.94);
+}
+
+.feed-button span {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .4px;
+}
+
+.feed-button svg {
+  width: 27px;
+  height: 27px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+body.fed .feed-button {
+  background: white;
+  color: var(--green-dark);
+  cursor: default;
+  box-shadow: 0 12px 35px rgba(0,0,0,.08);
+}
+
+body.fed .glow {
+  opacity: .18;
+  transform: scale(1.12);
+}
+
+body.fed .feed-button:hover {
+  transform: none;
+}
+
+.checkmark {
+  opacity: 0;
+  transform: scale(.4) rotate(-35deg);
+  transition: all .45s cubic-bezier(.2,1.5,.5,1);
+}
+
+body.fed .checkmark {
+  opacity: 1;
+  transform: scale(1) rotate(0);
+}
+
+.button-label {
+  transition: opacity .2s;
+}
+
+body.fed .button-label {
+  opacity: 0;
+  position: absolute;
+}
+
+.success-label {
+  position: absolute;
+  opacity: 0;
+  font-size: 12px;
+  font-weight: 700;
+  transition: opacity .3s;
+}
+
+body.fed .success-label {
+  opacity: 1;
+}
+
+.meta {
+  margin-top: 31px;
+  font-size: 12px;
+  color: var(--muted);
+  transition: color .6s;
+}
+
+body.fed .meta {
+  color: rgba(255,255,255,.75);
+}
+
+.bottom {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: .2px;
+  transition: color .6s;
+}
+
+body.fed .bottom {
+  color: rgba(255,255,255,.7);
+}
+
+#last-fed {
+  font-weight: 600;
+}
+
+.error {
+  position: fixed;
+  bottom: 75px;
+  left: 50%;
+  transform: translateX(-50%) translateY(15px);
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: #282e29;
+  color: white;
+  font-size: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: .3s;
+  z-index: 5;
+  max-width: calc(100% - 32px);
+  text-align: center;
+}
+
+.error.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.loading {
+  position: fixed;
+  inset: 0;
+  background: white;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  transition: opacity .5s, visibility .5s;
+}
+
+.loading.hide {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loader-content {
+  text-align: center;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.loader-dot {
+  width: 9px;
+  height: 9px;
+  margin: 18px auto 0;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+  to { transform: scale(1.8); opacity: .4; }
+}
+
+@media(max-width: 450px) {
+  .app { padding-top: 27px; }
+  .button-area { margin-top: 48px; }
+  h1 { letter-spacing: -2.8px; }
+}
+
+@media(prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="success-background"></div>
+
+<div class="loading" id="loading">
+  <div class="loader-content">
+    Lexi
+    <div class="loader-dot"></div>
+  </div>
+</div>
+
+<div class="app">
+  <header class="top">
+    <div class="logo">
+      <div class="logo-icon">🐾</div>
+      lexi
+    </div>
+
+    <div class="status">
+      <div class="status-dot" id="connection-dot"></div>
+      <span id="connection-text">Connecting</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="eyebrow" id="meal-label">BREAKFAST TIME</div>
+
+    <h1 id="main-title">Has Lexi<br>eaten yet?</h1>
+
+    <p class="subtitle" id="subtitle">
+      Let's make sure she's taken care of.
+    </p>
+
+    <div class="button-area">
+      <div class="glow"></div>
+
+      <button class="feed-button" id="feed-button" disabled>
+        <svg class="checkmark" viewBox="0 0 24 24">
+          <path d="M5 12.5l4.5 4.5L19 7"/>
+        </svg>
+        <span class="button-label">She's been fed</span>
+        <span class="success-label">All done!</span>
+      </button>
+    </div>
+
+    <p class="meta" id="meta">
+      Tap when you've fed Lexi
+    </p>
+  </main>
+
+  <footer class="bottom">
+    <span id="date-label"></span>
+    <span id="last-fed">Waiting for an update</span>
+  </footer>
+</div>
+
+<div class="error" id="error"></div>
+
+<script type="module">
+import { initializeApp } from
+  "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+
+import {
+  getDatabase,
+  ref,
+  onValue,
+  runTransaction
+} from
+  "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+
+import {
+  getAuth,
+  signInAnonymously
+} from
+  "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+
+// =====================================
+// FIREBASE CONFIGURATION
+// =====================================
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCekgnkqpYcBm2F1pjuuE7b_kJ82xm1MXs",
+  authDomain: "lexifood-d97a4.firebaseapp.com",
+  databaseURL: "https://lexifood-d97a4-default-rtdb.firebaseio.com",
+  projectId: "lexifood-d97a4",
+  storageBucket: "lexifood-d97a4.firebasestorage.app",
+  messagingSenderId: "647097461993",
+  appId: "1:647097461993:web:f3b13d22b40d59218e9478",
+  measurementId: "G-N59P8480DK"
+};
+
+// =====================================
+// SETTINGS
+// =====================================
+
+const TIMEZONE = "America/Vancouver";
+const DINNER_HOUR = 13; // 1:00 PM
+const DATABASE_PATH = "lexi/current";
+
+// =====================================
+// INITIALIZE
+// =====================================
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+const currentRef = ref(db, DATABASE_PATH);
+
+const $ = id => document.getElementById(id);
+
+let currentPeriod = "";
+let currentState = null;
+let hasAnimated = false;
+let isBusy = false;
+let lastAnimationPeriod = "";
+
+// =====================================
+// TIME HELPERS
+// =====================================
+
+function getLocalTime() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hourCycle: "h23"
+  }).formatToParts(new Date());
+
+  const p = Object.fromEntries(
+    parts.map(part => [part.type, part.value])
+  );
+
+  const hour = Number(p.hour);
+  const meal = hour >= DINNER_HOUR ? "dinner" : "breakfast";
+
+  return {
+    date: `${p.year}-${p.month}-${p.day}`,
+    meal,
+    key: `${p.year}-${p.month}-${p.day}-${meal}`
+  };
+}
+
+function formatDate() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIMEZONE,
+    weekday: "long",
+    month: "long",
+    day: "numeric"
+  }).format(new Date());
+}
+
+function formatTime(timestamp) {
+  if (!timestamp) return "";
+
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIMEZONE,
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(new Date(timestamp));
+}
+
+// =====================================
+// PERIOD MANAGEMENT
+// =====================================
+
+// Atomic transaction means only the first visitor
+// to a new period can initialize/reset the state.
+
+async function ensureCurrentPeriod() {
+  const period = getLocalTime();
+
+  if (period.key === currentPeriod) return;
+
+  currentPeriod = period.key;
+
+  const result = await runTransaction(currentRef, current => {
+    if (!current || current.period !== period.key) {
+      return {
+        period: period.key,
+        meal: period.meal,
+        fed: false,
+        fedAt: null,
+        updatedAt: Date.now()
+      };
+    }
+
+    return current;
+  });
+
+  if (!result.committed) {
+    throw new Error("Couldn't initialize feeding period.");
+  }
+}
+
+// =====================================
+// FEEDING ACTION
+// =====================================
+
+async function feedLexi() {
+  if (isBusy || !currentState || currentState.fed) return;
+
+  isBusy = true;
+  $("feed-button").disabled = true;
+  $("meta").textContent = "Saving...";
+
+  try {
+    const period = getLocalTime();
+    const now = Date.now();
+
+    const result = await runTransaction(currentRef, current => {
+      // If the period changed while the app was open,
+      // initialize the new period and mark it fed.
+      if (!current || current.period !== period.key) {
+        return {
+          period: period.key,
+          meal: period.meal,
+          fed: true,
+          fedAt: now,
+          updatedAt: now
+        };
+      }
+
+      // Another family member already fed Lexi.
+      if (current.fed) return;
+
+      return {
+        ...current,
+        meal: period.meal,
+        fed: true,
+        fedAt: now,
+        updatedAt: now
+      };
+    });
+
+    if (!result.committed) {
+      showError("Someone has already fed Lexi!");
+    }
+
+    currentPeriod = period.key;
+
+  } catch (error) {
+    console.error(error);
+    showError("Couldn't save. Check your connection.");
+  } finally {
+    isBusy = false;
+    $("feed-button").disabled = !!currentState?.fed;
+  }
+}
+
+// =====================================
+// INTERFACE
+// =====================================
+
+function render(state) {
+  currentState = state;
+
+  const period = getLocalTime();
+
+  // Update meal display
+  $("meal-label").textContent =
+    period.meal === "breakfast" ? "BREAKFAST TIME" : "DINNER TIME";
+
+  $("date-label").textContent = formatDate();
+
+  if (state?.fed) {
+    document.body.classList.add("fed");
+
+    $("main-title").innerHTML =
+      "Lexi has been<br>fed. <span>♥</span>";
+
+    $("subtitle").textContent =
+      `She's all taken care of this ${period.meal}.`;
+
+    $("meta").textContent =
+      state.fedAt ? `Fed at ${formatTime(state.fedAt)}` : "All done!";
+
+    $("last-fed").textContent =
+      state.fedAt ? `Fed ${formatTime(state.fedAt)}` : "Fed";
+
+    $("feed-button").disabled = true;
+
+    // Only animate when the period changes into a fed state.
+    if (lastAnimationPeriod !== state.period) {
+      lastAnimationPeriod = state.period;
+
+      if (!hasAnimated) {
+        hasAnimated = true;
+        requestAnimationFrame(() => {
+          $("success-background").classList.add("expand");
+        });
+      }
+    }
+
+  } else {
+    document.body.classList.remove("fed");
+
+    $("main-title").textContent = "Has Lexi eaten yet?";
+
+    $("subtitle").textContent =
+      "Let's make sure she's taken care of.";
+
+    $("meta").textContent = "Tap when you've fed Lexi";
+
+    $("last-fed").textContent = "Not fed yet";
+
+    $("feed-button").disabled = false;
+
+    // Reset animation for the next meal.
+    $("success-background").classList.remove("expand");
+    $("success-background").style.animation = "none";
+    void $("success-background").offsetHeight;
+    $("success-background").style.animation = "";
+
+    hasAnimated = false;
+    lastAnimationPeriod = "";
+  }
+}
+
+// =====================================
+// CONNECTION STATUS
+// =====================================
+
+function setConnection(connected) {
+  $("connection-dot").classList.toggle("online", connected);
+
+  $("connection-text").textContent =
+    connected ? "Live sync" : "Offline";
+}
+
+// =====================================
+// ERRORS
+// =====================================
+
+function showError(message) {
+  const element = $("error");
+  element.textContent = message;
+  element.classList.add("show");
+
+  setTimeout(() => {
+    element.classList.remove("show");
+  }, 3500);
+}
+
+// =====================================
+// STARTUP
+// =====================================
+
+async function start() {
+  try {
+    await signInAnonymously(auth);
+    await ensureCurrentPeriod();
+
+    onValue(currentRef, snapshot => {
+      const state = snapshot.val();
+      const period = getLocalTime();
+
+      // Reconcile if another visitor initialized
+      // a different period.
+      if (state?.period !== period.key) {
+        ensureCurrentPeriod().catch(console.error);
+        return;
+      }
+
+      currentPeriod = period.key;
+      setConnection(true);
+      render(state);
+      $("loading").classList.add("hide");
+
+    }, error => {
+      console.error(error);
+      setConnection(false);
+      showError("Lost connection to Firebase.");
+    });
+
+    // Detect network changes.
+    const connectedRef = ref(db, ".info/connected");
+
+    onValue(connectedRef, snapshot => {
+      setConnection(snapshot.val() === true);
+    });
+
+    // Check for meal changes while the page stays open.
+    setInterval(() => {
+      const period = getLocalTime();
+
+      if (period.key !== currentPeriod) {
+        ensureCurrentPeriod().catch(console.error);
+      }
+    }, 15000);
+
+  } catch (error) {
+    console.error(error);
+    $("loading").classList.add("hide");
+    showError("Couldn't connect. Check Firebase settings.");
+  }
+}
+
+$("feed-button").addEventListener("click", feedLexi);
+
+start();
+
+</script>
+</body>
+</html>
